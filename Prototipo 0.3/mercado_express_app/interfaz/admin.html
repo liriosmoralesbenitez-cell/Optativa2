@@ -160,7 +160,7 @@ dialog::backdrop{background:rgba(11,32,39,.55)}
     <div class="marca"><i></i>Mercado Express</div>
     <p>Escribe tu clave para entrar. Es la clave de usuario o la de administrador que definiste al arrancar la API.</p>
     <label for="clave">Clave de acceso</label>
-    <input type="password" id="clave" required autofocus>
+    <input type="password" id="clave" required>
     <div id="errAcceso" class="aviso error" hidden style="margin-top:12px"></div>
     <button class="btn" style="width:100%;margin-top:16px" type="submit">Entrar</button>
   </form>
@@ -183,7 +183,7 @@ dialog::backdrop{background:rgba(11,32,39,.55)}
   <main id="main" tabindex="-1"></main>
 </div>
 
-<dialog id="dlg"><div class="dlg-cab"><h2 id="dlgTitulo"></h2><button class="cerrar" id="dlgCerrar" aria-label="Cerrar">&times;</button></div><div class="dlg-cuerpo" id="dlgCuerpo"></div></dialog>
+<dialog id="dlg" aria-labelledby="dlgTitulo"><div class="dlg-cab"><h2 id="dlgTitulo">Detalle</h2><button class="cerrar" id="dlgCerrar" aria-label="Cerrar">&times;</button></div><div class="dlg-cuerpo" id="dlgCuerpo"></div></dialog>
 
 <script>
 "use strict";
@@ -235,7 +235,7 @@ function enlazarPaginador(cont, estado, recargar) {
 /* ================= diálogo ================= */
 const dlg = $("#dlg");
 function abrirDialogo(titulo, html, ancho = false) {
-  $("#dlgTitulo").textContent = titulo;
+  $("#dlgTitulo").textContent = titulo || "Detalle";
   $("#dlgCuerpo").innerHTML = html;
   dlg.classList.toggle("ancho", ancho);
   if (!dlg.open) dlg.showModal();

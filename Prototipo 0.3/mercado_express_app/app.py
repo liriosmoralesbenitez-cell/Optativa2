@@ -16,6 +16,7 @@ import secrets
 import sqlite3
 import time
 from datetime import date, datetime, timedelta
+from urllib.parse import urlsplit
 
 from flask import Flask, g, jsonify, request, send_from_directory
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -55,6 +56,7 @@ EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,185}\.[^@\s]{2,}$")
 COOKIE_SESION = "me_sesion"
 DURACION_SESION = 7 * 24 * 3600      # 7 días
 MAX_INTENTOS, VENTANA_INTENTOS = 5, 600   # 5 intentos fallidos cada 10 minutos
+METODOS_SEGUROS = {"GET", "HEAD", "OPTIONS"}   # los que no cambian datos: no necesitan protección CSRF
 
 # Orden permitido en el catálogo (lista blanca: nunca se arma el ORDER BY con texto del usuario)
 ORDENES_TIENDA = {
@@ -219,6 +221,9 @@ def create_app(config=None):
         # Tasa de referencia para mostrar precios en COP (octubre de 2026: ~3.200 a 3.300).
         # Se cambia con la variable de entorno TASA_COP, sin tocar el código.
         TASA_COP=float(os.environ.get("TASA_COP", "3250")),
+        # Orígenes extra (separados por coma) que pueden hacer peticiones que cambian datos,
+        # p. ej. "https://tienda.midominio.com". Vacío = solo el propio sitio.
+        ORIGENES_CONFIABLES=os.environ.get("ORIGENES_CONFIABLES", ""),
     )
     if config:
         app.config.update(config)
@@ -256,6 +261,27 @@ def create_app(config=None):
     # ------------------------------------------------------------ seguridad
     def _coincide(a, b):
         return hmac.compare_digest(a.encode("utf-8"), b.encode("utf-8"))
+
+    @app.before_request
+    def proteger_csrf():
+        """Defensa contra CSRF (Cross-Site Request Forgery) para la sesión por cookie.
+
+        Los navegadores siempre envían la cabecera Origin (o Referer) en las peticiones que cambian
+        datos (POST, PUT, PATCH, DELETE). Si viene de otro sitio distinto al nuestro, se rechaza.
+        Las peticiones sin Origin ni Referer no vienen de una página web ajena (curl, otras apps),
+        así que no pueden aprovechar la cookie de un usuario. Además la cookie es SameSite=Lax.
+        Se registra ANTES de autenticar() para que también cubra las rutas públicas (login, registro)."""
+        if request.method in METODOS_SEGUROS:
+            return None
+        origen = request.headers.get("Origin") or request.headers.get("Referer")
+        if not origen:
+            return None
+        recibido = urlsplit(origen).netloc.lower()
+        permitidos = {urlsplit(o.strip()).netloc.lower()
+                      for o in app.config["ORIGENES_CONFIABLES"].split(",") if o.strip()}
+        if recibido and (recibido == request.host.lower() or recibido in permitidos):
+            return None
+        raise ErrorApi(403, "Petición rechazada: el origen no está permitido")
 
     @app.before_request
     def autenticar():
@@ -408,7 +434,9 @@ def create_app(config=None):
 
     # ------------------------------------------------------------ cuentas de cliente (tienda)
     intentos = {}                                   # (ip, correo) -> momentos de intentos fallidos
-    hash_falso = generate_password_hash("no-existe")  # para que "correo no existe" tarde lo mismo
+    # Hash de una clave aleatoria que nadie conoce: sirve para que "correo no existe" tarde lo mismo
+    # que "clave incorrecta", sin dejar ninguna contraseña escrita en el código.
+    hash_falso = generate_password_hash(secrets.token_urlsafe(16))
 
     def _hash_token(token):
         return hashlib.sha256(token.encode("utf-8")).hexdigest()
