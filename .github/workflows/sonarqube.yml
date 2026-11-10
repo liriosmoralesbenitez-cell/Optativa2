@@ -29,4 +29,4 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=04e970bfee37b36dd75f009c2d8400064df993fc
-            -Dsonar.organization=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
+            -Dsonar.organization=liriosmoralesbenitez-cell
