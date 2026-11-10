@@ -19,6 +19,7 @@ from datetime import date, datetime, timedelta
 from urllib.parse import urlsplit
 
 from flask import Flask, g, jsonify, request, send_from_directory
+from flask_wtf.csrf import CSRFProtect, CSRFError, generate_csrf
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from cargar_datos import CSV_POR_DEFECTO, cargar
@@ -32,7 +33,7 @@ REGIONES = {"East", "West", "Central", "South"}
 RUTAS_PUBLICAS = {"salud", "favicon", "pagina_tienda", "pagina_admin", "pagina_catalogo",
                   "tienda_productos", "tienda_categorias", "tienda_resumen", "tienda_config",
                   "tienda_ubicaciones", "cuenta_registro", "cuenta_entrar", "cuenta_salir", "cuenta_yo",
-                  "cuenta_direccion",
+                  "cuenta_direccion", "csrf_token",
                   # Sección de administradores: no usan X-API-Key, usan cuenta con rol admin + sesión.
                   # Las que cambian datos llaman a requiere_admin() y rechazan a quien no lo sea.
                   "admin_registro", "admin_entrar", "admin_yo",
@@ -216,6 +217,7 @@ def create_app(config=None):
     app.config.update(
         DB_PATH=os.environ.get("DB_PATH", os.path.join(aqui, "mercado_express.db")),
         CSV_PATH=os.environ.get("CSV_PATH", CSV_POR_DEFECTO),
+        SECRET_KEY=os.environ.get("FLASK_SECRET_KEY") or secrets.token_urlsafe(32),
         API_KEY=os.environ.get("API_KEY"),
         ADMIN_KEY=os.environ.get("ADMIN_KEY"),
         # Tasa de referencia para mostrar precios en COP (octubre de 2026: ~3.200 a 3.300).
@@ -227,6 +229,18 @@ def create_app(config=None):
     )
     if config:
         app.config.update(config)
+
+    # Flask-WTF: protección CSRF con token firmado. Se activa manualmente solo
+    # para peticiones que usan la cookie de sesión; las integraciones API que
+    # autentican mediante X-API-Key no dependen de cookies del navegador.
+    app.config.update(
+        WTF_CSRF_CHECK_DEFAULT=False,
+        WTF_CSRF_TIME_LIMIT=3600,
+        WTF_CSRF_HEADERS=["X-CSRFToken", "X-CSRF-Token"],
+        WTF_CSRF_SSL_STRICT=True,
+    )
+    csrf = CSRFProtect()
+    csrf.init_app(app)
 
     # Seguridad por defecto: si no hay claves configuradas, se generan al azar.
     for nombre in ("API_KEY", "ADMIN_KEY"):
@@ -283,9 +297,19 @@ def create_app(config=None):
         recibido = urlsplit(origen).netloc.lower()
         permitidos = {urlsplit(o.strip()).netloc.lower()
                       for o in app.config["ORIGENES_CONFIABLES"].split(",") if o.strip()}
-        if recibido and (recibido == request.host.lower() or recibido in permitidos):
-            return None
-        raise ErrorApi(403, "Petición rechazada: el origen no está permitido")
+        if not recibido or (recibido != request.host.lower() and recibido not in permitidos):
+            raise ErrorApi(403, "Petición rechazada: el origen no está permitido")
+
+        # Si la petición lleva la cookie de sesión, exige además un token CSRF
+        # firmado y enviado en X-CSRFToken (o X-CSRF-Token).
+        if request.cookies.get(COOKIE_SESION):
+            csrf.protect()
+        return None
+
+    @app.get("/csrf-token")
+    def csrf_token():
+        """Entrega al frontend el token que debe enviar en cada petición con sesión."""
+        return jsonify({"csrf_token": generate_csrf()})
 
     @app.before_request
     def autenticar():
@@ -319,6 +343,10 @@ def create_app(config=None):
         if e.detalles:
             cuerpo["detalles"] = e.detalles
         return jsonify(cuerpo), e.codigo
+
+    @app.errorhandler(CSRFError)
+    def _csrf_error(e):
+        return jsonify({"error": "Token CSRF inválido o ausente", "detalle": e.description}), 400
 
     @app.errorhandler(404)
     def _404(_e):
