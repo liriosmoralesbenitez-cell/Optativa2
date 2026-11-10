@@ -458,7 +458,7 @@ function pintarVista() {
   $("#vistaTile").innerHTML = tile(cat?.tono || "ofi", sub?.icono || "box");
   $("#vistaNombre").textContent = $("#pNombre").value.trim() || "Nombre del producto";
   $("#vistaCat").textContent = cat ? `${$("#pSub").value || "—"} · ${cat.categoria}` : "";
-  const p = parseFloat($("#pPrecio").value);
+  const p = Number.parseFloat($("#pPrecio").value);
   $("#vistaPrecio").textContent = p > 0 ? usd(p) : "";
 }
 function pintarListas() {
@@ -552,7 +552,7 @@ $("#edCantidad").addEventListener("input", pintarStockEditar);
 $("#formEditar").addEventListener("submit", async e => {
   e.preventDefault();
   const err = $("#edErr"); err.hidden = true;
-  const nombre = $("#edNombre").value.trim(), categoria = $("#edCat").value, subcategoria = $("#edSub").value, precio = parseFloat($("#edPrecio").value);
+  const nombre = $("#edNombre").value.trim(), categoria = $("#edCat").value, subcategoria = $("#edSub").value, precio = Number.parseFloat($("#edPrecio").value);
   if (!(precio > 0)) { err.hidden = false; err.textContent = "Escribe un precio mayor que 0."; return; }
   const cambios = {};        // solo se envía lo que cambió (así un precio calculado no se "congela" sin querer)
   if (nombre !== PROD.nombre) cambios.nombre = nombre;
@@ -640,7 +640,8 @@ $("#formRegistro").addEventListener("submit", e => {
   const el = $("#rErr"), nombre = $("#rNombre").value.trim(), email = $("#rCorreo").value.trim(), password = $("#rClave").value, codigo = $("#rCodigo").value;
   const falla = t => { el.hidden = false; el.textContent = t; };
   if (nombre.length < 2) return falla("Escribe tu nombre (mínimo 2 letras).");
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) return falla("Escribe un correo válido.");
+  // Sin repeticiones ambiguas: cada tramo del dominio excluye el punto, así la expresión no retrocede en exceso.
+  if (!/^[^@\s]{1,64}@[^@\s.]{1,185}(?:\.[^@\s.]+)*\.[^@\s.]{2,}$/.test(email)) return falla("Escribe un correo válido.");
   if (password.length < 8) return falla("La contraseña debe tener al menos 8 caracteres.");
   if (!codigo) return falla("Escribe el código de administrador.");
   if (!$("#rAutoriza").checked) return falla("Debes autorizar el tratamiento de datos para crear la cuenta.");
@@ -675,7 +676,7 @@ $("#formSub").addEventListener("submit", e => {
 $("#formProd").addEventListener("submit", e => {
   e.preventDefault();
   $("#pOk").hidden = true;
-  const precio = parseFloat($("#pPrecio").value), textoStock = $("#pStock").value.trim(), stock = Number(textoStock);
+  const precio = Number.parseFloat($("#pPrecio").value), textoStock = $("#pStock").value.trim(), stock = Number(textoStock);
   const falla = t => { const el = $("#pErr"); el.hidden = false; el.textContent = t; };
   if (!(precio > 0)) return falla("Escribe un precio mayor que 0.");
   if (textoStock === "" || !Number.isInteger(stock) || stock < 0) return falla("Escribe la cantidad en stock: un número entero, 0 o más.");

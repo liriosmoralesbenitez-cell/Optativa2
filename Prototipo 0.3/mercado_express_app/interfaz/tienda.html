@@ -57,6 +57,8 @@ button{cursor:pointer}
 [hidden]{display:none!important}
 .muted{color:var(--muted);font-size:.88rem}
 .num{font-variant-numeric:tabular-nums}
+/* texto que solo leen los lectores de pantalla (la etiqueta del buscador) */
+.solo-lector{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* ---------- fondo: luces difusas que se mueven muy despacio ---------- */
 .aurora{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
@@ -391,13 +393,14 @@ dialog[open]::backdrop{background:rgba(8,5,14,.38);backdrop-filter:blur(12px);-w
     <header class="cab">
       <h1>Mercado Express</h1>
       <form class="buscar" role="search" id="formBuscar">
-        <input type="search" id="q" data-i18n-ph="buscarPh" data-i18n-aria="buscar" autocomplete="off">
-        <button type="submit" data-i18n-aria="buscar"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+        <label for="q" class="solo-lector" data-i18n="buscar">Buscar productos</label>
+        <input type="search" id="q" data-i18n-ph="buscarPh" data-i18n-aria="buscar" aria-label="Buscar productos" placeholder="Buscar sillas, teléfonos, carpetas…" autocomplete="off">
+        <button type="submit" data-i18n-aria="buscar" aria-label="Buscar productos"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
       </form>
-      <button class="ico" data-accion="carrito" data-i18n-aria="abrirCarrito">
+      <button class="ico" data-accion="carrito" data-i18n-aria="abrirCarrito" aria-label="Abrir carrito">
         <svg class="i" viewBox="0 0 24 24"><path d="M3 4h2.5l2.2 11h10.1l2-8H7"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>
         <span class="badge" data-badge hidden>0</span></button>
-      <button class="ico solo-movil" data-accion="config" data-i18n-aria="config">
+      <button class="ico solo-movil" data-accion="config" data-i18n-aria="config" aria-label="Configuración">
         <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       <button class="cuenta-b" id="btnCuenta" data-accion="cuenta"></button>
     </header>
@@ -405,64 +408,64 @@ dialog[open]::backdrop{background:rgba(8,5,14,.38);backdrop-filter:blur(12px);-w
     <section class="top">
       <article class="card hero">
         <div class="hero-txt">
-          <h2 data-i18n="heroTitulo"></h2>
-          <p data-i18n="heroTexto"></p>
-          <button class="btn-blanco" data-ir="productos" data-i18n="verProductos"></button>
+          <h2 data-i18n="heroTitulo">Equipa tu espacio de trabajo</h2>
+          <p data-i18n="heroTexto">Muebles, tecnología y material de oficina en un solo lugar.</p>
+          <button class="btn-blanco" data-ir="productos" data-i18n="verProductos">Ver productos</button>
         </div>
         <div class="hero-deco" id="deco" aria-hidden="true"></div>
         <div class="stats" id="stats">
-          <div class="stat"><b class="num">–</b><span data-i18n="stProductos"></span></div>
-          <div class="stat"><b class="num">–</b><span data-i18n="stPedidos"></span></div>
-          <div class="stat"><b class="num">–</b><span data-i18n="stCategorias"></span></div>
-          <div class="stat"><b class="num">–</b><span data-i18n="stDescuento"></span></div>
-          <button class="ir" data-ir="productos" data-i18n-aria="irCatalogo"><svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+          <div class="stat"><b class="num">–</b><span data-i18n="stProductos">Productos</span></div>
+          <div class="stat"><b class="num">–</b><span data-i18n="stPedidos">Pedidos</span></div>
+          <div class="stat"><b class="num">–</b><span data-i18n="stCategorias">Categorías</span></div>
+          <div class="stat"><b class="num">–</b><span data-i18n="stDescuento">Descuento máx.</span></div>
+          <button class="ir" data-ir="productos" data-i18n-aria="irCatalogo" aria-label="Ir al catálogo"><svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
         </div>
       </article>
       <div class="col">
-        <section class="card"><h2 data-i18n="categorias"></h2><div class="chips" id="chips" role="group" data-i18n-aria="filtrarCat"></div></section>
-        <section class="card dia" id="dia"><h2 data-i18n="dia"></h2><p class="muted" data-i18n="cargando"></p></section>
+        <section class="card"><h2 data-i18n="categorias">Categorías</h2><div class="chips" id="chips" role="group" data-i18n-aria="filtrarCat" aria-label="Filtrar por categoría"></div></section>
+        <section class="card dia" id="dia"><h2 data-i18n="dia">Producto del día</h2><p class="muted" data-i18n="cargando">Cargando…</p></section>
       </div>
     </section>
 
     <section class="card" id="masVendidos">
-      <div class="seccion-cab"><h2 data-i18n="masVendidos"></h2></div>
-      <div class="encab-top" aria-hidden="true"><span></span><span data-i18n="producto"></span><span data-i18n="vendidosCab"></span><span data-i18n="precioCab"></span><span></span></div>
-      <div id="topLista"><p class="muted" style="padding:18px 4px" data-i18n="cargando"></p></div>
+      <div class="seccion-cab"><h2 data-i18n="masVendidos">Los más vendidos</h2></div>
+      <div class="encab-top" aria-hidden="true"><span></span><span data-i18n="producto">Producto</span><span data-i18n="vendidosCab">Vendidos</span><span data-i18n="precioCab">Precio</span><span></span></div>
+      <div id="topLista"><p class="muted" style="padding:18px 4px" data-i18n="cargando">Cargando…</p></div>
     </section>
 
     <section class="card" id="productos">
       <div class="cat-sec" id="seccionCategorias">
-        <h2 data-i18n="exploraCat"></h2>
+        <h2 data-i18n="exploraCat">Explora por categoría</h2>
         <div class="cat-grid" id="catGrid"></div>
       </div>
       <div class="seccion-cab">
-        <div><h2 id="tituloCat"></h2><p class="muted" id="infoCat" role="status"></p></div>
+        <div><h2 id="tituloCat">Todos los productos</h2><p class="muted" id="infoCat" role="status"></p></div>
         <div class="barra-cat">
-          <label for="orden" class="muted" data-i18n="ordenarPor"></label>
+          <label for="orden" class="muted" data-i18n="ordenarPor">Ordenar por</label>
           <select id="orden">
-            <option value="vendidos" data-i18n="ordVendidos"></option><option value="recientes" data-i18n="ordNuevos"></option><option value="precio_asc" data-i18n="ordMenor"></option>
-            <option value="precio_desc" data-i18n="ordMayor"></option><option value="nombre" data-i18n="ordNombre"></option>
+            <option value="vendidos" data-i18n="ordVendidos">Más vendidos</option><option value="recientes" data-i18n="ordNuevos">Novedades</option><option value="precio_asc" data-i18n="ordMenor">Menor precio</option>
+            <option value="precio_desc" data-i18n="ordMayor">Mayor precio</option><option value="nombre" data-i18n="ordNombre">Nombre (A–Z)</option>
           </select>
         </div>
       </div>
-      <div class="subchips" id="subchips" role="group" data-i18n-aria="filtrarSub" hidden></div>
+      <div class="subchips" id="subchips" role="group" data-i18n-aria="filtrarSub" aria-label="Filtrar por subcategoría" hidden></div>
       <div class="grilla" id="grilla"></div>
       <div id="estadoGrilla"></div>
-      <div class="ver-mas"><button class="btn-fantasma" id="verMas" data-i18n="verMas" hidden></button></div>
+      <div class="ver-mas"><button class="btn-fantasma" id="verMas" data-i18n="verMas" hidden>Ver más productos</button></div>
     </section>
 
-    <footer data-i18n="pie"></footer>
+    <footer data-i18n="pie">Prototipo académico de la Universidad Cooperativa de Colombia. Las compras no tienen pago real.</footer>
   </div>
 </div>
 
 <div id="velo"></div>
 <aside id="carrito" aria-label="Carrito" data-i18n-aria="carrito" inert>
-  <div class="car-cab"><h2 data-i18n="tuCarrito"></h2><button class="cerrar" data-accion="cerrar-carrito" data-i18n-aria="cerrar">&times;</button></div>
+  <div class="car-cab"><h2 data-i18n="tuCarrito">Tu carrito</h2><button class="cerrar" data-accion="cerrar-carrito" data-i18n-aria="cerrar" aria-label="Cerrar">&times;</button></div>
   <div class="car-lista" id="carLista"></div>
   <div class="car-pie">
-    <div class="car-total"><span data-i18n="total"></span><b class="num" id="carTotal"></b></div>
-    <button class="btn-naranja" id="btnPagar" data-accion="pagar" data-i18n="finalizar"></button>
-    <button class="quitar" id="btnVaciar" data-accion="vaciar" style="justify-self:center" data-i18n="vaciar"></button>
+    <div class="car-total"><span data-i18n="total">Total</span><b class="num" id="carTotal"></b></div>
+    <button class="btn-naranja" id="btnPagar" data-accion="pagar" data-i18n="finalizar">Finalizar compra</button>
+    <button class="quitar" id="btnVaciar" data-accion="vaciar" style="justify-self:center" data-i18n="vaciar">Vaciar carrito</button>
   </div>
 </aside>
 
@@ -962,7 +965,8 @@ document.addEventListener("submit", async e => {
   const reg = e.target.dataset.form === "crear", err = $("#aErr"), g = id => ($("#" + id)?.value || "").trim();
   const email = g("aCorreo"), clave = $("#aClave").value;
   const fallo = txt => { err.hidden = false; err.textContent = txt; };
-  const correoOk = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email);
+  // Sin repeticiones ambiguas: cada tramo del dominio excluye el punto, así la expresión no retrocede en exceso.
+  const correoOk = /^[^@\s]{1,64}@[^@\s.]{1,185}(?:\.[^@\s.]+)*\.[^@\s.]{2,}$/.test(email);
   let cuerpo;
   if (reg) {
     const nombre = g("aNombre"), apellido = g("aApellido"), telefono = g("aTel"), dir = leerDireccion("r");

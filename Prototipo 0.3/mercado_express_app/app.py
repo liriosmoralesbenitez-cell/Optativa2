@@ -268,13 +268,17 @@ def create_app(config=None):
 
         Los navegadores siempre envían la cabecera Origin (o Referer) en las peticiones que cambian
         datos (POST, PUT, PATCH, DELETE). Si viene de otro sitio distinto al nuestro, se rechaza.
-        Las peticiones sin Origin ni Referer no vienen de una página web ajena (curl, otras apps),
-        así que no pueden aprovechar la cookie de un usuario. Además la cookie es SameSite=Lax.
+        Si no viene ninguna de las dos y la petición trae la cookie de sesión, también se rechaza:
+        un navegador real siempre manda Origin, así que esa combinación es sospechosa.
+        Las llamadas sin cookie (curl, otras apps con X-API-Key) no pueden aprovechar la sesión de
+        nadie y siguen funcionando. Además la cookie es SameSite=Lax.
         Se registra ANTES de autenticar() para que también cubra las rutas públicas (login, registro)."""
         if request.method in METODOS_SEGUROS:
             return None
         origen = request.headers.get("Origin") or request.headers.get("Referer")
         if not origen:
+            if request.cookies.get(COOKIE_SESION):
+                raise ErrorApi(403, "Petición rechazada: falta el origen de la petición")
             return None
         recibido = urlsplit(origen).netloc.lower()
         permitidos = {urlsplit(o.strip()).netloc.lower()
